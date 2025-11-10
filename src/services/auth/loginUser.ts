@@ -2,6 +2,8 @@
 "use server";
 
 import z from "zod";
+import {parse} from 'cookie';
+import { cookies } from "next/headers";
 
 const loginValidationZodSchema = z.object({
     email: z.email({
@@ -16,13 +18,15 @@ const loginValidationZodSchema = z.object({
 
 export const loginUser = async (_currentState: any, formData: any): Promise<any> => {
     try {
+        let accessTokenObject: null | any = null;
+        let refreshTokenObject: null | any = null;
         const loginData = {
             email: formData.get('email'),
             password: formData.get('password')
         }
 
         const validatedFields = loginValidationZodSchema.safeParse(loginData);
-        console.log(validatedFields);
+        // console.log(validatedFields);
 
         if(!validatedFields.success) {
             return {
@@ -42,9 +46,55 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
             headers: {
                 "Content-Type": "application/json"
             },
-        }).then(res => res.json())
+        })
 
-        return res;
+        const result = await res.json();
+        // console.log(res, result);
+
+        const setCookieHeaders = res.headers.getSetCookie();
+        if(setCookieHeaders && setCookieHeaders.length > 0) {
+            setCookieHeaders.forEach((cookie: string) => {
+                // console.log(cookie, "for each cookie");
+                const parsedCookie = parse(cookie);
+
+                if(parsedCookie['accessToken']) {
+                    accessTokenObject = parsedCookie;
+                }
+
+                if(parsedCookie['refreshToken']) {
+                    refreshTokenObject = parsedCookie;
+                }
+            })
+        }
+        else {
+            throw new Error("No Set-Cookie header found");
+        }
+        // console.log({accessTokenObject, refreshTokenObject});
+
+        if(!accessTokenObject) {
+            throw new Error("Tokens not found in cookies");
+        }
+
+        if(!refreshTokenObject) {
+            throw new Error("Tokens not found in cookies");
+        }
+
+        const cookieStore = await cookies();
+        cookieStore.set("accessToken", accessTokenObject.accessToken, {
+            secure: true,
+            httpOnly: true,
+            maxAge: parseInt(accessTokenObject.MaxAge),
+            path: accessTokenObject.Path || "/",
+        });
+
+        cookieStore.set("refreshToken", accessTokenObject.accessToken, {
+            secure: true,
+            httpOnly: true,
+            maxAge: parseInt(accessTokenObject.MaxAge),
+            path: accessTokenObject.Path || "/",
+        });
+
+        return result;
 
     } catch (error) {
         console.log(error);
