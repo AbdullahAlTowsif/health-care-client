@@ -2,82 +2,8 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { cookies } from 'next/headers';
+import { getDefaultDashboardRoute, getRouteOwner, isAuthRoute, UserRole } from './lib/auth-utils';
 
-type UserRole = "ADMIN" | "DOCTOR" | "PATIENT";
-
-type RouteConfig = {
-  exact: string[]
-  patterns: RegExp[]
-}
-
-const authRoutes = ["/login", "/register", "forgot-password", "reset-password"];
-
-const commonProtectedRoutes: RouteConfig = {
-  exact: ["/my-profile", "settings"],
-  patterns: [],
-}
-
-const doctorProtectedRoutes: RouteConfig = {
-  patterns: [/^\/doctor/],
-  exact: [],
-}
-
-const adminProtectedRoutes: RouteConfig = {
-  patterns: [/^\/admin/],
-  exact: [],
-}
-
-const patientProtectedRoutes: RouteConfig = {
-  patterns: [/^\/dashboard/],
-  exact: [],
-}
-
-const isAuthRoute = (pathname: string) => {
-  return authRoutes.some((route: string) => route === pathname)
-}
-
-// const isAuthRoute = (pathname: string) => {
-//   return authRoutes.some((route: string) => {
-//     return route === pathname
-//     // return route.startsWith(pathname)
-//   })
-// }
-
-const isRouteMatches = (pathname: string, routes: RouteConfig): boolean => {
-  if (routes.exact.includes(pathname)) {
-    return true;
-  }
-  return routes.patterns.some((pattern: RegExp) => pattern.test(pathname))
-}
-
-const getRouteOwner = (pathname: string): "ADMIN" | "DOCTOR" | "PATIENT" | "COMMON" | null => {
-  if (isRouteMatches(pathname, adminProtectedRoutes)) {
-    return "ADMIN"
-  }
-  if (isRouteMatches(pathname, doctorProtectedRoutes)) {
-    return "DOCTOR"
-  }
-  if (isRouteMatches(pathname, patientProtectedRoutes)) {
-    return "PATIENT"
-  }
-  if (isRouteMatches(pathname, commonProtectedRoutes)) {
-    return "COMMON"
-  }
-  return null
-}
-
-const getDefaultDashboardRoute = (role: UserRole): string => {
-  if (role === "ADMIN") {
-    return "/admin/dashboard";
-  }
-  if (role === "DOCTOR") {
-    return "/doctor/dashboard";
-  }
-  if (role === "PATIENT") {
-    return "/dashboard";
-  }
-  return "/"
-}
 
 // This function can be marked `async` if using `await` inside
 export async function proxy(request: NextRequest) {
