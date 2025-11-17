@@ -2,7 +2,7 @@
 "use server";
 
 import z from "zod";
-import {parse} from 'cookie';
+import { parse } from 'cookie';
 import { cookies } from "next/headers";
 
 const loginValidationZodSchema = z.object({
@@ -28,7 +28,7 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
         const validatedFields = loginValidationZodSchema.safeParse(loginData);
         // console.log(validatedFields);
 
-        if(!validatedFields.success) {
+        if (!validatedFields.success) {
             return {
                 success: false,
                 errors: validatedFields.error.issues.map(issue => {
@@ -52,16 +52,16 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
         // console.log(res, result);
 
         const setCookieHeaders = res.headers.getSetCookie();
-        if(setCookieHeaders && setCookieHeaders.length > 0) {
+        if (setCookieHeaders && setCookieHeaders.length > 0) {
             setCookieHeaders.forEach((cookie: string) => {
                 // console.log(cookie, "for each cookie");
                 const parsedCookie = parse(cookie);
 
-                if(parsedCookie['accessToken']) {
+                if (parsedCookie['accessToken']) {
                     accessTokenObject = parsedCookie;
                 }
 
-                if(parsedCookie['refreshToken']) {
+                if (parsedCookie['refreshToken']) {
                     refreshTokenObject = parsedCookie;
                 }
             })
@@ -71,11 +71,11 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
         }
         // console.log({accessTokenObject, refreshTokenObject});
 
-        if(!accessTokenObject) {
+        if (!accessTokenObject) {
             throw new Error("Tokens not found in cookies");
         }
 
-        if(!refreshTokenObject) {
+        if (!refreshTokenObject) {
             throw new Error("Tokens not found in cookies");
         }
 
@@ -83,15 +83,17 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
         cookieStore.set("accessToken", accessTokenObject.accessToken, {
             secure: true,
             httpOnly: true,
-            maxAge: parseInt(accessTokenObject.MaxAge),
+            maxAge: parseInt(accessTokenObject['Max-Age']) || 1000 * 60 * 60,
             path: accessTokenObject.Path || "/",
+            sameSite: accessTokenObject['SameSite'] || "none"
         });
 
         cookieStore.set("refreshToken", accessTokenObject.accessToken, {
             secure: true,
             httpOnly: true,
-            maxAge: parseInt(accessTokenObject.MaxAge),
+            maxAge: parseInt(accessTokenObject['Max-Age']) || 1000 * 60 * 60 * 24 * 90,
             path: accessTokenObject.Path || "/",
+            sameSite: accessTokenObject['SameSite'] || "none"
         });
 
         return result;
