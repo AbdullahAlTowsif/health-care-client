@@ -3,10 +3,10 @@
 
 import z from "zod";
 import { parse } from 'cookie';
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { getDefaultDashboardRoute, isValidRedirectForRole, UserRole } from "@/lib/auth-utils";
+import { setCookie } from "./tokenHandlers";
 
 const loginValidationZodSchema = z.object({
     email: z.email({
@@ -84,8 +84,7 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
             throw new Error("Tokens not found in cookies");
         }
 
-        const cookieStore = await cookies();
-        cookieStore.set("accessToken", accessTokenObject.accessToken, {
+        await setCookie("accessToken", accessTokenObject.accessToken, {
             secure: true,
             httpOnly: true,
             maxAge: parseInt(accessTokenObject['Max-Age']) || 1000 * 60 * 60,
@@ -93,7 +92,7 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
             sameSite: accessTokenObject['SameSite'] || "none"
         });
 
-        cookieStore.set("refreshToken", accessTokenObject.accessToken, {
+        await setCookie("refreshToken", accessTokenObject.accessToken, {
             secure: true,
             httpOnly: true,
             maxAge: parseInt(accessTokenObject['Max-Age']) || 1000 * 60 * 60 * 24 * 90,
@@ -105,7 +104,6 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
 
         if (typeof verifiedToken === "string") {
             throw new Error("Invalid token");
-
         }
 
         const userRole: UserRole = verifiedToken.role;
@@ -132,6 +130,7 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
         if (error?.digest?.startsWith('NEXT_REDIRECT')) {
             throw error;
         }
+        
         console.log(error);
         return { error: "Login Failed" };
     }
