@@ -109,7 +109,7 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
         const userRole: UserRole = verifiedToken.role;
 
         if(!result.success) {
-            throw new Error("Login Failed");
+            throw new Error(`${process.env.NODE_ENV === 'development' ? result.success: "Login Failed" }`);
         }
 
         if (redirectTo) {
@@ -132,6 +132,6 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
         }
         
         console.log(error);
-        return { error: "Login Failed" };
+        return { success: false, message: `${process.env.NODE_ENV === 'development' ? error.message : "Login Failed. You might have entered incorrect email or password."}` };
     }
 }
