@@ -1,23 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
-import z from "zod";
 import { parse } from 'cookie';
 import { redirect } from "next/navigation";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { getDefaultDashboardRoute, isValidRedirectForRole, UserRole } from "@/lib/auth-utils";
 import { setCookie } from "./tokenHandlers";
+import { serverFetch } from "@/lib/server-fetch";
+import { zodValidator } from "@/lib/zodValidator";
+import { loginValidationZodSchema } from '@/zod/auth.validation';
 
-const loginValidationZodSchema = z.object({
-    email: z.email({
-        error: "Invalid email address",
-    }),
-    password: z.string().min(6, {
-        error: "Password is required and must be at least 6 characters long"
-    }).max(100, {
-        error: "Password must be at most 100 characters long",
-    }),
-})
 
 export const loginUser = async (_currentState: any, formData: any): Promise<any> => {
     try {
@@ -25,32 +17,41 @@ export const loginUser = async (_currentState: any, formData: any): Promise<any>
         console.log("redirect from server action", redirectTo);
         let accessTokenObject: null | any = null;
         let refreshTokenObject: null | any = null;
-        const loginData = {
+        const payload = {
             email: formData.get('email'),
             password: formData.get('password')
         }
 
-        const validatedFields = loginValidationZodSchema.safeParse(loginData);
+        // const validatedFields = loginValidationZodSchema.safeParse(loginData);
         // console.log(validatedFields);
 
-        if (!validatedFields.success) {
-            return {
-                success: false,
-                errors: validatedFields.error.issues.map(issue => {
-                    return {
-                        field: issue.path[0],
-                        message: issue.message,
-                    }
-                })
-            }
+        // if (!validatedFields.success) {
+        //     return {
+        //         success: false,
+        //         errors: validatedFields.error.issues.map(issue => {
+        //             return {
+        //                 field: issue.path[0],
+        //                 message: issue.message,
+        //             }
+        //         })
+        //     }
+        // }
+
+        if(zodValidator(payload, loginValidationZodSchema).success === false) {
+            return zodValidator(payload, loginValidationZodSchema);
         }
 
-        const res = await fetch("http://localhost:5000/api/v1/auth/login", {
-            method: "POST",
-            body: JSON.stringify(loginData),
+        const validatedPayload = zodValidator(payload, loginValidationZodSchema).data;
+
+        // const res = await serverFetch.post("/auth/login", {
+        //     body: JSON.stringify(loginData),
+        // })
+
+        const res = await serverFetch.post("/auth/login", {
+            body: JSON.stringify(validatedPayload),
             headers: {
                 "Content-Type": "application/json"
-            },
+            }
         })
 
         const result = await res.json();
