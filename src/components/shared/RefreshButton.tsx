@@ -20,7 +20,7 @@ const RefreshButton = ({
 
   const handleRefresh = () => {
     startTransition(() => {
-      router.refresh();
+      router.push(window.location.pathname);
     });
   };
   return (
@@ -31,9 +31,8 @@ const RefreshButton = ({
       disabled={isPending}
     >
       <RefreshCcw
-        className={`h-4 w-4 ${isPending ? "animate-spin" : ""} ${
-          showLabel ? "mr-2" : ""
-        }`}
+        className={`h-4 w-4 ${isPending ? "animate-spin" : ""} ${showLabel ? "mr-2" : ""
+          }`}
       />
       {showLabel && "Refresh"}
     </Button>
