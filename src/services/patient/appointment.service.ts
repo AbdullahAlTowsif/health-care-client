@@ -29,7 +29,7 @@ export async function createAppointment(data: IAppointmentFormData) {
 export async function getMyAppointments(queryString?: string) {
     try {
         const response = await serverFetch.get(
-            `/appointment/my-appointment${queryString ? `?${queryString}` : "?sortBy=createdAt&sortOrder=desc"}`
+            `/appointment/my-appointments${queryString ? `?${queryString}` : "?sortBy=createdAt&sortOrder=desc"}`
         );
         const result = await response.json();
         console.log({ result });
@@ -49,7 +49,7 @@ export async function getMyAppointments(queryString?: string) {
 
 export async function getAppointmentById(appointmentId: string) {
     try {
-        const response = await serverFetch.get('/appointment/my-appointment');
+        const response = await serverFetch.get('/appointment/my-appointments');
         const result = await response.json();
 
         if (result.success && result.data) {
