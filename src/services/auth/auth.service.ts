@@ -95,6 +95,7 @@ export async function resetPassword(_prevState: any, formData: FormData) {
                     message: "Invalid reset link",
                 };
             }
+            console.log("token fd", token);
 
             response = await serverFetch.post("/auth/reset-password", {
                 headers: {
