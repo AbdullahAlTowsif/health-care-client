@@ -158,7 +158,7 @@ const DoctorViewDetailDialog = ({
                           variant="outline"
                           className="px-4 py-2 text-sm"
                         >
-                          {specialty.specialties?.title || "Unknown"}
+                          {specialty.specialities?.title || "Unknown"}
                         </Badge>
                       ))}
                     </div>
@@ -214,7 +214,7 @@ const DoctorViewDetailDialog = ({
                     value={
                       doctor?.gender
                         ? doctor.gender.charAt(0) +
-                          doctor.gender.slice(1).toLowerCase()
+                        doctor.gender.slice(1).toLowerCase()
                         : "Not specified"
                     }
                   />
