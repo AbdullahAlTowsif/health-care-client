@@ -11,7 +11,7 @@ import InputFieldError from "./shared/InputFieldError";
 
 const RegisterForm = () => {
     const [state, formAction, isPending] = useActionState(registerPatient, null);
-    console.log(state, "state");
+    // console.log(state, "state");
 
     // const getFieldError = (fieldName: string) => {
     //     if (state && state.errors) {

@@ -16,7 +16,7 @@ const LoginSuccessToast = () => {
             newUrl.searchParams.delete("loggedIn");
             router.replace(newUrl.toString());
         }
-        console.log(searchParams.get("loggedOut"));
+        // console.log(searchParams.get("loggedOut"));
     }, [router, searchParams]);
 
     return null
